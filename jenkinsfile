@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+    
+    environment {
+        GIT_REPO = 'https://github.com/kushal1997/Demo-Flask-App-CICD.git'
+        SSH_CRED = 'jenkins_ec2_ssh_key'
+        EC2_IP = '44.248.249.198'
+        EC2_USERNAME = 'ubuntu'
+    }
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+
+        stage('Code Checkout') {
+            steps {
+                git branch: 'master', url: "${env.GIT_REPO}"
+            }
+        }
+
+        stage('Copy to EC2') {
+            steps {
+                sshagent(credentials: [env.SSH_CRED]) {
+                    sh """
+                        scp -o StrictHostKeyChecking=no -r * ${EC2_USERNAME}@${EC2_IP}:/home/ubuntu/
+                    """
+                }
+            }
+        }
+    }
+}
