@@ -116,16 +116,16 @@ pipeline {
     post {
         success {
             emailext (
-                subject: "SUCCESS: Jenkins Flask Pipeline",
+                subject: "Jenkins Pipeline -> ${JOB_NAME} - Build #${BUILD_NUMBER} - SUCCESS",
                 body: "#${BUILD_NUMBER} - Pipeline is successfully completed Build",
                 to: "${EMAIL}"
             )
         }
 
         failure {
-            emailtext (
-                subject: "FAILED: Jenkins Flask Pipeline",
-                body: "#${BUILD_NUMBER}: Pipeline is failed",
+            emailext (
+                subject: "Jenkins Pipeline -> ${JOB_NAME} - Build #${BUILD_NUMBER} - FAILED",
+                body: "#${BUILD_NUMBER}: Pipeline is failed. Please check logs. \n For More Details :  ${BUILD_URL}",
                 to: "${EMAIL}"
             )
         }
