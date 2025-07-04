@@ -66,5 +66,20 @@ pipeline {
                 }
             }
         }
+
+        stage('Build') {
+            steps {
+                sshagent(credentials: [env.SSH_CRED]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
+                            cd /home/ubuntu
+                            python3 -m venv venv
+                            source venv/bin/activate
+                            pip install -r requirements.txt
+                        '
+                    """
+                }
+            }
+        }
     }
 }
