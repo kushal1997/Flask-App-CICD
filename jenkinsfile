@@ -4,22 +4,58 @@ pipeline {
     environment {
         GIT_REPO = 'https://github.com/kushal1997/Demo-Flask-App-CICD.git'
         SSH_CRED = 'jenkins_ec2_ssh_key'
-        EC2_IP = '44.248.249.198'
+        EC2_IP = '35.88.78.52'
         EC2_USERNAME = 'ubuntu'
     }
 
     stages {
-        stage('Hello') {
-            steps {
-                echo 'Hello World'
-            }
-        }
+        stage('paralel-build') {
+            parallel {
+                stage('Hello') {
+                    steps {
+                        echo 'Hello World'
+                    }
+                }
 
-        stage('Code Checkout') {
-            steps {
-                git branch: 'master', url: "${env.GIT_REPO}"
+                stage('Code Checkout') {
+                    steps {
+                        git branch: 'master', url: "${env.GIT_REPO}"
+                    }
+                }
+
+                stage('Check python3 installed or not ') {
+                    steps {
+                        sshagent(credentials: [env.SSH_CRED]) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
+                                    if command -v python3 >/dev/null; then
+                                        echo "python3 is already installed"
+                                    else
+                                        sudo apt isntall -y python3
+                                    fi
+
+                                    if command -v pip3 >/dev/null; then
+                                        echo "/n pip3 is already installed"
+                                    else
+                                        sudo apt install -y python3-pip
+                                    fi
+
+                                    if command -v venv >/dev/null; then
+                                        echo "/n python3-venv is installed"
+                                    else
+                                        sudo apt install -y python3-venv
+                                    fi
+                                '
+                            """
+                        }
+                    }
+                    
+                }
             }
         }
+        
+
+        
 
         stage('Copy to EC2') {
             steps {
