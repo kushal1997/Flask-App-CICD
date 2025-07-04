@@ -102,8 +102,9 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
                             cd /home/ubuntu
+                            fuser -k 3000/tcp || true
                             source venv/bin/activate
-                            nohup python app.py &
+                            nohup python app.py > output.log 2>&1 &
                         '
                     """
                 }
