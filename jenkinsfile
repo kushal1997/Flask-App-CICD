@@ -6,6 +6,7 @@ pipeline {
         SSH_CRED = 'jenkins_ec2_ssh_key'
         EC2_IP = '35.88.78.52'
         EC2_USERNAME = 'ubuntu'
+        EMAIL = 'kushalrao123@gmail.com'
     }
 
     stages {
@@ -109,6 +110,24 @@ pipeline {
                     """
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            emailext (
+                subject: "SUCCESS: Jenkins Flask Pipeline",
+                body: "#${BUILD_NUMBER} - Pipeline is successfully completed Build",
+                to: "${EMAIL}"
+            )
+        }
+
+        failure {
+            emailtext (
+                subject: "FAILED: Jenkins Flask Pipeline",
+                body: "#${BUILD_NUMBER}: Pipeline is failed",
+                to: "${EMAIL}"
+            )
         }
     }
 }
