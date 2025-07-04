@@ -81,5 +81,19 @@ pipeline {
                 }
             }
         }
+
+        stage('Test') {
+            steps {
+                sshagent(credentials: [env.SSH_CRED]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
+                            cd /home/ubuntu
+                            source venv/bin/activate
+                            pytest test_app.py
+                        '
+                    """
+                }
+            }
+        }
     }
 }
