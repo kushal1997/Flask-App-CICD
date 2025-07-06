@@ -30,6 +30,16 @@ jobs:
           pip install -r 2_GithubActionPipeline/requirements.txt
           pytest 2_GithubActionPipeline/test_app.py
         shell: bash
+
+  deploy_staging:
+    needs: build_and_test
+    runs-on: ubuntu lastest
+    steps:
+      - name: Dummy deploy to staging
+        if: github.ref == 'refs/heads/staging
+        run: |
+          echo " "
+          echo "=============Deploying to staging ==============="
           
 
       
