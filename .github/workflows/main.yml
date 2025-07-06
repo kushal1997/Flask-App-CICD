@@ -31,6 +31,7 @@ jobs:
         shell: bash
 
       - name: Run Tests
-        run: pytest 2_GithubActionPipeline/test_app.py
+        run: |
+          pytest 2_GithubActionPipeline/test_app.py
 
       
