@@ -29,3 +29,9 @@ jobs:
           pip install --upgrade pip
           pip install -r 2_GithubActionPipeline/requirements.txt
         shell: bash
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Tests
+        run: pythest 2_GithubActionPipeline/test_app.py
