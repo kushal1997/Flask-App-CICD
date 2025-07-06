@@ -22,16 +22,14 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Dependencies in python virtual environmnet
+      - name: Install Dependencies in python virtual environmnet and run tests
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r 2_GithubActionPipeline/requirements.txt
-        shell: bash
-
-      - name: Run Tests
-        run: |
           pytest 2_GithubActionPipeline/test_app.py
+        shell: bash
+          
 
       
