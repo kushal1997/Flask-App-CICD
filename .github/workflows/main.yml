@@ -33,7 +33,7 @@ jobs:
 
   deploy_staging:
     needs: build_and_test
-    runs-on: ubuntu lastest
+    runs-on: ubuntu-latest
     steps:
       - name: Dummy deploy to staging
         if: github.ref == 'refs/heads/staging'
