@@ -11,7 +11,7 @@ on:
       - staging
 
 jobs:
-  build:
+  build_and_test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,8 +30,7 @@ jobs:
           pip install -r 2_GithubActionPipeline/requirements.txt
         shell: bash
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
       - name: Run Tests
         run: pytest 2_GithubActionPipeline/test_app.py
+
+      
