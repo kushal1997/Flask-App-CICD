@@ -34,4 +34,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run Tests
-        run: pythest 2_GithubActionPipeline/test_app.py
+        run: pytest 2_GithubActionPipeline/test_app.py
