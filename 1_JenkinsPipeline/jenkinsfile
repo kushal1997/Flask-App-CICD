@@ -1,0 +1,133 @@
+pipeline {
+    agent any
+    
+    environment {
+        GIT_REPO = 'https://github.com/kushal1997/Demo-Flask-App-CICD.git'
+        SSH_CRED = 'jenkins_ec2_ssh_key'
+        EC2_IP = '35.88.78.52'
+        EC2_USERNAME = 'ubuntu'
+        EMAIL = 'kushalrao123@gmail.com'
+    }
+
+    stages {
+        stage('paralel-build') {
+            parallel {
+                stage('Hello') {
+                    steps {
+                        echo 'Hello World'
+                    }
+                }
+
+                stage('Code Checkout') {
+                    steps {
+                        git branch: 'master', url: "${env.GIT_REPO}"
+                    }
+                }
+
+                stage('Check python3 installed or not ') {
+                    steps {
+                        sshagent(credentials: [env.SSH_CRED]) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
+                                    if command -v python3 >/dev/null; then
+                                        echo "python3 is already installed"
+                                    else
+                                        sudo apt isntall -y python3
+                                    fi
+
+                                    if command -v pip3 >/dev/null; then
+                                        echo "/n pip3 is already installed"
+                                    else
+                                        sudo apt install -y python3-pip
+                                    fi
+
+                                    if command -v venv >/dev/null; then
+                                        echo "/n python3-venv is installed"
+                                    else
+                                        sudo apt install -y python3-venv
+                                    fi
+                                '
+                            """
+                        }
+                    }
+                    
+                }
+            }
+        }
+        
+
+        
+
+        stage('Copy to EC2') {
+            steps {
+                sshagent(credentials: [env.SSH_CRED]) {
+                    sh """
+                        scp -o StrictHostKeyChecking=no -r * ${EC2_USERNAME}@${EC2_IP}:/home/ubuntu/
+                    """
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sshagent(credentials: [env.SSH_CRED]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
+                            cd /home/ubuntu
+                            python3 -m venv venv
+                            source venv/bin/activate
+                            pip install -r requirements.txt
+                        '
+                    """
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sshagent(credentials: [env.SSH_CRED]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
+                            cd /home/ubuntu
+                            source venv/bin/activate
+                            pytest test_app.py
+                        '
+                    """
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sshagent(credentials: [env.SSH_CRED]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_IP} '
+                            cd /home/ubuntu
+                            fuser -k 3000/tcp || true
+                            source venv/bin/activate
+                            nohup python app.py > output.log 2>&1 &
+                        '
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            emailext (
+                subject: "Jenkins Pipeline -> ${JOB_NAME} - Build #${BUILD_NUMBER} - SUCCESS",
+                body: "#${BUILD_NUMBER} - Pipeline is successfully completed Build",
+                to: "${EMAIL}"
+            )
+        }
+
+        failure {
+            emailext (
+                subject: "Jenkins Pipeline -> ${JOB_NAME} - Build #${BUILD_NUMBER} - FAILED",
+                body: "#${BUILD_NUMBER}: Pipeline is failed. Please check logs. \n For More Details :  ${BUILD_URL}",
+                to: "${EMAIL}"
+            )
+        }
+    }
+}
