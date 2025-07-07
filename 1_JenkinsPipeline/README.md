@@ -95,7 +95,7 @@ Before setting up the Jenkins pipeline, ensure the following are configured:
 
 ---
 
-## 🖼️ Screenshots (Attach These to README)
+## 🖼️ Screenshots
 
 1. ✅ Jenkins Setup Page
 <p align="center">
