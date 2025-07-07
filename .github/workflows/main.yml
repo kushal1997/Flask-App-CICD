@@ -69,7 +69,7 @@ jobs:
            key: ${{secrets.EC2_SSH}}
            script: |
              cd ${{secrets.EC2_PATH}}/2_GithubActionPipeline
-             pkill -f "python app.py" || true
+             fuser -k 3000/tcp || true
              nohup ./venv/bin/python app.py > output.log 2>&1 &
 
   
