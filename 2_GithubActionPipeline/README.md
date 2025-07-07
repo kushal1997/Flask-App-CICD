@@ -141,6 +141,11 @@ Before using this CI/CD workflow, ensure the following:
 
 <br>
 
+### 🔄 **Pull - Event**
+<p align="center">
+  <img src="./screenshots/pull_event_workflow.png" width="800" alt="Pull - Event workflow overview" />
+</p>
+
 ---
 
 ## ⚠️ Challenges Faced
