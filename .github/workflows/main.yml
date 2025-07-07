@@ -47,6 +47,20 @@ jobs:
           source: "2_GithubActionPipeline/*"
           target: ${{secrets.EC2_PATH}}
 
+      - name: Run flask app
+        uses: appleboy/ssh-action@v1
+        with:
+           host: ${{secrets.EC2_IP}}
+           username: ${{secrets.EC2_USERNAME}}
+           key: ${{secrets.EC2_SSH}}
+           script: |
+             cd ${{secrets.EC2_PATH}}/2_GithubActionPipeline
+             python -m venv venv
+             source venv/bin/activate
+             pip install --upgrade pip
+             pip install -r requirements.txt
+             nohup python app.py > output.log 2>&1 &
+
   
           
 
