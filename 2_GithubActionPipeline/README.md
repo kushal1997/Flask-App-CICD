@@ -160,6 +160,16 @@ Before using this CI/CD workflow, ensure the following:
       ```
          if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
       ```
+- Need to change `master` to `main` branch
+     - From browser went to all branched and changed the branch name
+     - In locally:
+          ```
+            git branch -m master main
+            git fetch origin
+            git branch -u origin/main main
+            git remote set-head origin -a
+
+          ```
 
 ---
 
