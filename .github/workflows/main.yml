@@ -1,0 +1,117 @@
+name: Flask CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - staging
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - staging
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set_up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies in python virtual environmnet and run tests
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r 2_GithubActionPipeline/requirements.txt
+          pytest 2_GithubActionPipeline/test_app.py
+        shell: bash
+
+  deploy_staging:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{secrets.EC2_IP}}
+          username: ${{secrets.EC2_USERNAME}}
+          key: ${{secrets.EC2_SSH}}
+          source: "2_GithubActionPipeline/app.py,2_GithubActionPipeline/requirements.txt"
+          target: ${{secrets.EC2_PATH}}
+
+      - name: Install Python dependencing in EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{secrets.EC2_IP}}
+          username: ${{secrets.EC2_USERNAME}}
+          key: ${{secrets.EC2_SSH}}
+          script: |
+            sudo apt update
+            sudo apt install python3 python3-pip python3-venv -y -qq
+            cd ${{secrets.EC2_PATH}}/2_GithubActionPipeline
+            python3 -m venv venv
+            ./venv/bin/pip install --upgrade pip
+            ./venv/bin/pip install -r requirements.txt
+
+      - name: Run Flask App on EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{secrets.EC2_IP}}
+          username: ${{secrets.EC2_USERNAME}}
+          key: ${{secrets.EC2_SSH}}
+          script: |
+            cd ${{secrets.EC2_PATH}}/2_GithubActionPipeline
+            fuser -k 3000/tcp || true
+            nohup ./venv/bin/python app.py > output.log 2>&1 &
+
+  deploy_production:
+    needs: build_and_test
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{secrets.PROD_EC2_IP}}
+          username: ${{secrets.PROD_EC2_USERNAME}}
+          key: ${{secrets.PROD_EC2_SSH}}
+          source: "2_GithubActionPipeline/app.py,2_GithubActionPipeline/requirements.txt"
+          target: ${{secrets.PROD_EC2_PATH}}
+
+      - name: Install Python dependencing in EC2 (PROD)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{secrets.PROD_EC2_IP}}
+          username: ${{secrets.PROD_EC2_USERNAME}}
+          key: ${{secrets.PROD_EC2_SSH}}
+          script: |
+            sudo apt update
+            sudo apt install python3 python3-pip python3-venv -y -qq
+            cd ${{secrets.EC2_PATH}}/2_GithubActionPipeline
+            python3 -m venv venv
+            ./venv/bin/pip install --upgrade pip
+            ./venv/bin/pip install -r requirements.txt
+
+      - name: Run Flask App on Prod EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{secrets.PROD_EC2_IP}}
+          username: ${{secrets.PROD_EC2_USERNAME}}
+          key: ${{secrets.PROD_EC2_SSH}}
+          script: |
+            cd ${{secrets.EC2_PATH}}/2_GithubActionPipeline
+            fuser -k 3000/tcp || true
+            nohup ./venv/bin/python app.py > output.log 2>&1 &
