@@ -44,7 +44,7 @@ jobs:
           host: ${{secrets.EC2_IP}}
           username: ${{secrets.EC2_USERNAME}}
           key: ${{secrets.EC2_SSH}}
-          source: "2_GithubActionPipeline/*"
+          source: "2_GithubActionPipeline/app.py,2_GithubActionPipeline/requirements.txt"
           target: ${{secrets.EC2_PATH}}
 
       - name: Install Python dependencing in EC2
