@@ -6,7 +6,7 @@ on:
       - main
       - staging
     tags:
-      - "v*"
+      - "v1.0"
   pull_request:
     branches:
       - main
